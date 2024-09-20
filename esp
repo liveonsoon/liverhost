@@ -1,84 +1,150 @@
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
+_G.FriendColor = Color3.fromRGB(0, 0, 255)
+_G.EnemyColor = Color3.fromRGB(255, 0, 0)
+_G.UseTeamColor = true
 
-local Settings = {
-    ESP_Enabled = true,
-    ESP_TeamCheck = false,
-    Chams = true,
-    Chams_Color = Color3.fromRGB(0, 0, 255),
-    Chams_Transparency = 0.9,
-    Chams_Glow_Color = Color3.fromRGB(255, 0, 0),
-    Glow_Transparency = 0.3
-}
+--------------------------------------------------------------------
+local Holder = Instance.new("Folder", game.CoreGui)
+Holder.Name = "ESP"
 
-local function DestroyChams(character)
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") and part.Transparency ~= 1 then
-            local glow = part:FindFirstChild("Glow")
-            local chams = part:FindFirstChild("Chams")
+local Box = Instance.new("BoxHandleAdornment")
+Box.Name = "nilBox"
+Box.Size = Vector3.new(1, 2, 1)
+Box.Color3 = Color3.new(100 / 255, 100 / 255, 100 / 255)
+Box.Transparency = 0.7
+Box.ZIndex = 0
+Box.AlwaysOnTop = false
+Box.Visible = false
 
-            if glow then glow:Destroy() end
-            if chams then chams:Destroy() end
+local NameTag = Instance.new("BillboardGui")
+NameTag.Name = "nilNameTag"
+NameTag.Enabled = true
+NameTag.Size = UDim2.new(0, 200, 0, 50)
+NameTag.AlwaysOnTop = true
+NameTag.StudsOffset = Vector3.new(0, 1.8, 0)
+local Tag = Instance.new("TextLabel", NameTag)
+Tag.Name = "Tag"
+Tag.BackgroundTransparency = 1
+Tag.Position = UDim2.new(0, -50, 0, 0)
+Tag.Size = UDim2.new(0, 300, 0, 20)
+Tag.TextSize = 15
+Tag.TextColor3 = Color3.new(100 / 255, 100 / 255, 100 / 255)
+Tag.TextStrokeColor3 = Color3.new(0 / 255, 0 / 255, 0 / 255)
+Tag.TextStrokeTransparency = 0.4
+Tag.Text = "nil"
+Tag.Font = Enum.Font.SourceSansBold
+Tag.TextScaled = false
+
+local LoadCharacter = function(v)
+	repeat wait() until v.Character ~= nil
+	v.Character:WaitForChild("Humanoid")
+	local vHolder = Holder:FindFirstChild(v.Name)
+	vHolder:ClearAllChildren()
+	local b = Box:Clone()
+	b.Name = v.Name .. "Box"
+	b.Adornee = v.Character
+	b.Parent = vHolder
+	local t = NameTag:Clone()
+	t.Name = v.Name .. "NameTag"
+	t.Enabled = true
+	t.Parent = vHolder
+	t.Adornee = v.Character:WaitForChild("Head", 5)
+	if not t.Adornee then
+		return UnloadCharacter(v)
+	end
+	t.Tag.Text = v.Name
+	b.Color3 = Color3.new(v.TeamColor.r, v.TeamColor.g, v.TeamColor.b)
+	t.Tag.TextColor3 = Color3.new(v.TeamColor.r, v.TeamColor.g, v.TeamColor.b)
+	local Update
+	local UpdateNameTag = function()
+		if not pcall(function()
+			v.Character.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+			local maxh = math.floor(v.Character.Humanoid.MaxHealth)
+			local h = math.floor(v.Character.Humanoid.Health)
+		end) then
+			Update:Disconnect()
+		end
+	end
+	UpdateNameTag()
+	Update = v.Character.Humanoid.Changed:Connect(UpdateNameTag)
+end
+
+local UnloadCharacter = function(v)
+	local vHolder = Holder:FindFirstChild(v.Name)
+	if vHolder and (vHolder:FindFirstChild(v.Name .. "Box") ~= nil or vHolder:FindFirstChild(v.Name .. "NameTag") ~= nil) then
+		vHolder:ClearAllChildren()
+	end
+end
+
+local LoadPlayer = function(v)
+	local vHolder = Instance.new("Folder", Holder)
+	vHolder.Name = v.Name
+	v.CharacterAdded:Connect(function()
+		pcall(LoadCharacter, v)
+	end)
+	v.CharacterRemoving:Connect(function()
+		pcall(UnloadCharacter, v)
+	end)
+	v.Changed:Connect(function(prop)
+		if prop == "TeamColor" then
+			UnloadCharacter(v)
+			wait()
+			LoadCharacter(v)
+		end
+	end)
+	LoadCharacter(v)
+end
+
+local UnloadPlayer = function(v)
+	UnloadCharacter(v)
+	local vHolder = Holder:FindFirstChild(v.Name)
+	if vHolder then
+		vHolder:Destroy()
+	end
+end
+
+for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+	spawn(function() pcall(LoadPlayer, v) end)
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(v)
+	pcall(LoadPlayer, v)
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function(v)
+	pcall(UnloadPlayer, v)
+end)
+
+game:GetService("Players").LocalPlayer.NameDisplayDistance = 0
+
+if _G.Reantheajfdfjdgs then
+    return
+end
+
+_G.Reantheajfdfjdgs = ":suifayhgvsdghfsfkajewfrhk321rk213kjrgkhj432rj34f67df"
+
+local players = game:GetService("Players")
+local plr = players.LocalPlayer
+
+function esp(target, color)
+    if target.Character then
+        if not target.Character:FindFirstChild("GetReal") then
+            local highlight = Instance.new("Highlight")
+            highlight.RobloxLocked = true
+            highlight.Name = "GetReal"
+            highlight.Adornee = target.Character
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.FillColor = color
+            highlight.Parent = target.Character
+        else
+            target.Character.GetReal.FillColor = color
         end
     end
 end
 
-RunService.Heartbeat:Connect(function()
-    if Settings.ESP_Enabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local humanoid = player.Character:FindFirstChild("Humanoid")
-                if humanoid and humanoid.Health > 0 then
-                    if not (Settings.ESP_TeamCheck and player.Team == LocalPlayer.Team) then
-                        local character = player.Character
-
-                        for _, part in ipairs(character:GetChildren()) do
-                            if part:IsA("BasePart") and part.Transparency ~= 1 then
-                                if Settings.Chams then
-                                    if not part:FindFirstChild("Glow") and not part:FindFirstChild("Chams") then
-                                        local chamsBox = Instance.new("BoxHandleAdornment", part)
-                                        chamsBox.Name = "Chams"
-                                        chamsBox.AlwaysOnTop = true
-                                        chamsBox.ZIndex = 4
-                                        chamsBox.Adornee = part
-                                        chamsBox.Color3 = Settings.Chams_Color
-                                        chamsBox.Transparency = Settings.Chams_Transparency
-                                        chamsBox.Size = part.Size + Vector3.new(0.02, 0.02, 0.02)
-
-                                        local glowBox = Instance.new("BoxHandleAdornment", part)
-                                        glowBox.Name = "Glow"
-                                        glowBox.AlwaysOnTop = false
-                                        glowBox.ZIndex = 3
-                                        glowBox.Adornee = part
-                                        glowBox.Color3 = Settings.Chams_Glow_Color
-                                        glowBox.Size = chamsBox.Size + Vector3.new(0.13, 0.13, 0.13)
-                                        glowBox.Transparency = Settings.Glow_Transparency
-                                    end
-                                else
-                                    DestroyChams(character)
-                                end
-                            end
-                        end
-                    else
-                        DestroyChams(player.Character)
-                    end
-                else
-                    DestroyChams(player.Character)
-                end
-            end
-        end
-    else
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local humanoid = player.Character:FindFirstChild("Humanoid")
-                if humanoid and humanoid.Health > 0 then
-                    DestroyChams(player.Character)
-                end
-            end
+while task.wait() do
+    for i, v in pairs(players:GetPlayers()) do
+        if v ~= plr then
+            esp(v, _G.UseTeamColor and v.TeamColor.Color or ((plr.TeamColor == v.TeamColor) and _G.FriendColor or _G.EnemyColor))
         end
     end
-end)
+end
